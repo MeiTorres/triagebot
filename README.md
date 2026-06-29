@@ -100,4 +100,4 @@ Nombres: Mei Torres, Naroa Manterola
 
 Metodología: Vibe
 
-repositorio nuevos
+Metodología: `Vibe` 
