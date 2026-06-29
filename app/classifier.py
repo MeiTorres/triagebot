@@ -1,7 +1,7 @@
 import json
 import os
 
-import anthropic
+from openai import OpenAI
 
 FALLBACK_CLASSIFICATION = {"category": "question", "priority": "P3", "tags": []}
 
@@ -20,25 +20,24 @@ _ALLOWED_PRIORITIES = {"P1", "P2", "P3"}
 
 def classify_ticket(title: str, description: str) -> dict:
     try:
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        client = anthropic.Anthropic(
-            api_key=api_key,
+        client = OpenAI(
+            api_key=os.getenv("OPENROUTER_API_KEY"),
             base_url="https://openrouter.ai/api/v1",
         )
 
-        message = client.messages.create(
-            model="anthropic/claude-haiku-4-5",
-            max_tokens=256,
-            system=_SYSTEM_PROMPT,
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            max_tokens=1024,
             messages=[
+                {"role": "system", "content": _SYSTEM_PROMPT},
                 {
                     "role": "user",
                     "content": f"Title: {title}\n\nDescription: {description}",
-                }
+                },
             ],
         )
 
-        raw = message.content[0].text.strip()
+        raw = response.choices[0].message.content.strip()
         data = json.loads(raw)
 
         category = data.get("category", "question")
