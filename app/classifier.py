@@ -6,13 +6,13 @@ from openai import OpenAI
 FALLBACK_CLASSIFICATION = {"category": "question", "priority": "P3", "tags": []}
 
 _SYSTEM_PROMPT = """\
-You are a support ticket classifier. Given a ticket title and description, \
-return a JSON object with exactly these fields:
-- "category": one of "bug", "feature_request", "question", "urgent"
-- "priority": one of "P1", "P2", "P3"
-- "tags": a list of short lowercase strings (0-5 tags)
+Devuelve EXCLUSIVAMENTE un objeto JSON válido. Sin markdown, sin saludos, \
+sin texto antes ni después. Los valores permitidos son: \
+category ∈ {bug, feature_request, question, urgent}, priority ∈ {P1, P2, P3}. \
+No inventes categorías. Máximo 5 tags.
 
-Respond with raw JSON only, no markdown, no explanation."""
+Ejemplo de respuesta válida:
+{"category": "bug", "priority": "P2", "tags": ["login", "crash"]}"""
 
 _ALLOWED_CATEGORIES = {"bug", "feature_request", "question", "urgent"}
 _ALLOWED_PRIORITIES = {"P1", "P2", "P3"}
