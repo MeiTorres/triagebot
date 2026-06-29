@@ -1,6 +1,19 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from typing import Optional
 
-app = FastAPI(title="TriageBot")
+from fastapi import FastAPI, HTTPException
+
+from app import classifier, db
+from app.models import TicketCreate, TicketOut, TicketUpdate
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db.init_db()
+    yield
+
+
+app = FastAPI(title="TriageBot", lifespan=lifespan)
 
 
 @app.get("/health")
@@ -8,9 +21,35 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-# TODO: implementar durante el bootcamp.
-# Endpoints esperados por los tests:
-# - POST /tickets
-# - GET /tickets
-# - PATCH /tickets/{ticket_id}
-# - GET /
+@app.post("/tickets", response_model=TicketOut, status_code=201)
+def create_ticket(payload: TicketCreate):
+    try:
+        classification = classifier.classify_ticket(payload.title, payload.description)
+    except Exception:
+        classification = classifier.FALLBACK_CLASSIFICATION
+
+    ticket = db.create_ticket(
+        title=payload.title,
+        description=payload.description,
+        category=classification["category"],
+        priority=classification["priority"],
+        tags=classification["tags"],
+    )
+    return ticket
+
+
+@app.get("/tickets", response_model=list[TicketOut])
+def list_tickets(
+    category: Optional[str] = None,
+    priority: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    return db.list_tickets(category=category, priority=priority, status=status)
+
+
+@app.patch("/tickets/{ticket_id}", response_model=TicketOut)
+def update_ticket(ticket_id: int, payload: TicketUpdate):
+    ticket = db.update_ticket(ticket_id, status=payload.status, priority=payload.priority)
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return ticket
