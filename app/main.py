@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
 from app import classifier, db
 from app.models import TicketCreate, TicketOut, TicketUpdate
+
+load_dotenv()  # carga .env antes del primer uso de variables de entorno
 
 
 @asynccontextmanager
