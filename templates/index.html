@@ -6,6 +6,7 @@
   <title>TriageBot</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <script src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900">
   <main class="mx-auto max-w-6xl p-6 space-y-8">
@@ -16,6 +17,7 @@
     <section class="bg-white rounded-lg shadow-sm ring-1 ring-slate-200 p-6">
       <h2 class="text-lg font-semibold mb-4">Crear ticket</h2>
       <form hx-post="/tickets"
+            hx-ext="json-enc"
             hx-target="#tickets-container"
             hx-swap="innerHTML"
             hx-on::after-request="this.reset()"
