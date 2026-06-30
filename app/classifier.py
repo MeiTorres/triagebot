@@ -46,9 +46,10 @@ def _call_llm(client: OpenAI, title: str, description: str) -> dict:
         messages=[
             {"role": "system", "content": _get_system_prompt()},
             {"role": "user", "content": f"Title: {title}\n\nDescription: {description}"},
+            {"role": "assistant", "content": "{"},
         ],
     )
-    raw = response.choices[0].message.content.strip()
+    raw = "{" + response.choices[0].message.content.strip()
     return _parse_and_validate(raw)
 
 
