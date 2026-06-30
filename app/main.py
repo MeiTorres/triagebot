@@ -116,6 +116,24 @@ def create_ticket(request: Request, payload: TicketCreate):
     return TicketOut.model_validate(ticket)
 
 
+@app.get("/tickets/stats")
+def ticket_stats() -> dict:
+    rows = db.list_tickets()
+    by_category: dict[str, int] = {}
+    by_priority: dict[str, int] = {}
+    by_status: dict[str, int] = {}
+    for t in rows:
+        by_category[t["category"]] = by_category.get(t["category"], 0) + 1
+        by_priority[t["priority"]] = by_priority.get(t["priority"], 0) + 1
+        by_status[t["status"]] = by_status.get(t["status"], 0) + 1
+    return {
+        "total": len(rows),
+        "by_category": by_category,
+        "by_priority": by_priority,
+        "by_status": by_status,
+    }
+
+
 @app.get("/tickets")
 def list_tickets(
     request: Request,
