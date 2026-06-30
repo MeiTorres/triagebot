@@ -83,6 +83,7 @@
             {% for new_status, label in next_status.get(ticket.status, []) %}
             <button
               hx-patch="/tickets/{{ ticket.id }}"
+              hx-ext="json-enc"
               hx-vals='{"status": "{{ new_status }}"}'
               hx-target="#tickets-container"
               hx-swap="innerHTML"
