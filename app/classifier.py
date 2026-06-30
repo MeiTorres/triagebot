@@ -6,24 +6,18 @@ from openai import OpenAI
 
 FALLBACK_CLASSIFICATION = {"category": "question", "priority": "P3", "tags": []}
 
-_SYSTEM_PROMPT = """\
-Devuelve EXCLUSIVAMENTE un objeto JSON válido. Sin markdown, sin saludos, \
-sin texto antes ni después. Los valores permitidos son: \
-category ∈ {bug, feature_request, question, urgent}, priority ∈ {P1, P2, P3}. \
-No inventes categorías. Máximo 5 tags.
-
-Ejemplo de respuesta válida:
-{"category": "bug", "priority": "P2", "tags": ["login", "crash"]}"""
-
 _ALLOWED_CATEGORIES = {"bug", "feature_request", "question", "urgent"}
 _ALLOWED_PRIORITIES = {"P1", "P2", "P3"}
 
 _MAX_RETRIES = 2
-_RETRY_DELAY = 1  # segundos
+_RETRY_DELAY = 1
+
+
+def _get_system_prompt() -> str:
+    return os.environ["CLASSIFIER_PROMPT"]
 
 
 def _parse_and_validate(raw: str) -> dict:
-    """Parsea el JSON y valida los campos. Lanza ValueError si algo no es válido."""
     data = json.loads(raw)
 
     if not isinstance(data, dict):
@@ -46,12 +40,11 @@ def _parse_and_validate(raw: str) -> dict:
 
 
 def _call_llm(client: OpenAI, title: str, description: str) -> dict:
-    """Llama al LLM y devuelve la clasificación validada. Lanza excepción si falla."""
     response = client.chat.completions.create(
-        model="openai/gpt-oss-120b",
+        model=os.environ["CLASSIFIER_MODEL"],
         max_tokens=1024,
         messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": _get_system_prompt()},
             {"role": "user", "content": f"Title: {title}\n\nDescription: {description}"},
         ],
     )
@@ -61,7 +54,7 @@ def _call_llm(client: OpenAI, title: str, description: str) -> dict:
 
 def classify_ticket(title: str, description: str) -> dict:
     client = OpenAI(
-        api_key=os.getenv("OPENROUTER_API_KEY"),
+        api_key=os.environ["OPENROUTER_API_KEY"],
         base_url="https://openrouter.ai/api/v1",
     )
 
