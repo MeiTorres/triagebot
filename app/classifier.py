@@ -63,8 +63,10 @@ def classify_ticket(title: str, description: str) -> dict:
         try:
             return _call_llm(client, title, description)
         except Exception as exc:
+            print(f"[classifier] intento {attempt + 1} fallido: {exc}")
             last_exc = exc  # noqa: F841
             if attempt < _MAX_RETRIES - 1:
                 time.sleep(_RETRY_DELAY)
 
+    print(f"[classifier] usando fallback tras {_MAX_RETRIES} intentos")
     return FALLBACK_CLASSIFICATION
