@@ -72,11 +72,8 @@
     </section>
 
     <!-- 3. Tablero -->
-    <section id="tickets-container"
-             hx-get="/tickets?status=open"
-             hx-trigger="load"
-             hx-swap="innerHTML">
-      <p class="text-slate-500 text-sm">Cargando tickets…</p>
+    <section id="tickets-container">
+      {% include "_tickets_table.html" %}
     </section>
 
   </main>

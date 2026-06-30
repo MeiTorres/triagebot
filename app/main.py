@@ -30,7 +30,8 @@ def health() -> dict[str, str]:
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    tickets = db.list_tickets(status="open")
+    return templates.TemplateResponse("index.html", {"request": request, "tickets": tickets})
 
 
 @app.post("/tickets", status_code=201)
