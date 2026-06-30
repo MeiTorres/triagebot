@@ -29,7 +29,7 @@ def main():
     print(f"Eliminados {deleted} ticket(s) sin responsables.")
 
     # 2. Leer seed
-    tickets_data = json.loads(SEED_FILE.read_text())
+    tickets_data = json.loads(SEED_FILE.read_text(encoding="utf-8"))
     print(f"Insertando {len(tickets_data)} tickets del seed…")
 
     ok = 0
