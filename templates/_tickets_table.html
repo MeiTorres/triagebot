@@ -1,16 +1,73 @@
-<table class="min-w-full divide-y divide-slate-200 bg-white shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden">
-  <thead class="bg-slate-100">
-    <tr>
-      <th class="px-3 py-2 text-left text-sm font-semibold">ID</th>
-      <th class="px-3 py-2 text-left text-sm font-semibold">Título</th>
-      <th class="px-3 py-2 text-left text-sm font-semibold">Categoría</th>
-      <th class="px-3 py-2 text-left text-sm font-semibold">Prioridad</th>
-      <th class="px-3 py-2 text-left text-sm font-semibold">Tags</th>
-      <th class="px-3 py-2 text-left text-sm font-semibold">Estado</th>
-      <th class="px-3 py-2 text-left text-sm font-semibold">Creado</th>
-    </tr>
-  </thead>
-  <tbody id="tickets-table-body">
-    <!-- TODO: renderizar tickets con Jinja2 -->
-  </tbody>
-</table>
+<div id="tickets-wrapper">
+  <table class="min-w-full divide-y divide-slate-200 bg-white shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden">
+    <thead class="bg-slate-100">
+      <tr>
+        <th class="px-3 py-2 text-left text-sm font-semibold">ID</th>
+        <th class="px-3 py-2 text-left text-sm font-semibold">Título</th>
+        <th class="px-3 py-2 text-left text-sm font-semibold">Categoría</th>
+        <th class="px-3 py-2 text-left text-sm font-semibold">Prioridad</th>
+        <th class="px-3 py-2 text-left text-sm font-semibold">Tags</th>
+        <th class="px-3 py-2 text-left text-sm font-semibold">Estado</th>
+        <th class="px-3 py-2 text-left text-sm font-semibold">Creado</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for ticket in tickets %}
+      <tr class="hover:bg-slate-50">
+        <td class="px-3 py-2 text-sm text-slate-400">#{{ ticket.id }}</td>
+        <td class="px-3 py-2 text-sm font-medium max-w-xs truncate">{{ ticket.title }}</td>
+
+        <!-- Categoría con color -->
+        <td class="px-3 py-2 text-sm">
+          {% if ticket.category == "bug" %}
+            <span class="inline-flex items-center rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-medium">bug</span>
+          {% elif ticket.category == "urgent" %}
+            <span class="inline-flex items-center rounded-full bg-orange-100 text-orange-700 px-2 py-0.5 text-xs font-medium">urgent</span>
+          {% elif ticket.category == "feature_request" %}
+            <span class="inline-flex items-center rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-xs font-medium">feature</span>
+          {% else %}
+            <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-600 px-2 py-0.5 text-xs font-medium">{{ ticket.category }}</span>
+          {% endif %}
+        </td>
+
+        <!-- Prioridad con badge -->
+        <td class="px-3 py-2 text-sm">
+          {% if ticket.priority == "P1" %}
+            <span class="inline-flex items-center rounded-md bg-red-600 text-white px-2 py-0.5 text-xs font-bold">P1</span>
+          {% elif ticket.priority == "P2" %}
+            <span class="inline-flex items-center rounded-md bg-amber-400 text-white px-2 py-0.5 text-xs font-bold">P2</span>
+          {% else %}
+            <span class="inline-flex items-center rounded-md bg-slate-300 text-slate-700 px-2 py-0.5 text-xs font-bold">P3</span>
+          {% endif %}
+        </td>
+
+        <!-- Tags -->
+        <td class="px-3 py-2 text-sm">
+          <div class="flex flex-wrap gap-1">
+            {% for tag in ticket.tags %}
+              <span class="rounded bg-slate-100 text-slate-600 px-1.5 py-0.5 text-xs">{{ tag }}</span>
+            {% endfor %}
+          </div>
+        </td>
+
+        <!-- Estado -->
+        <td class="px-3 py-2 text-sm">
+          {% if ticket.status == "open" %}
+            <span class="inline-flex items-center rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs font-medium">open</span>
+          {% elif ticket.status == "in_progress" %}
+            <span class="inline-flex items-center rounded-full bg-yellow-100 text-yellow-700 px-2 py-0.5 text-xs font-medium">in progress</span>
+          {% else %}
+            <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-500 px-2 py-0.5 text-xs font-medium">closed</span>
+          {% endif %}
+        </td>
+
+        <td class="px-3 py-2 text-xs text-slate-400">{{ ticket.created_at[:10] }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" class="px-3 py-8 text-center text-sm text-slate-400">No hay tickets todavía.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

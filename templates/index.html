@@ -8,11 +8,92 @@
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
 <body class="bg-slate-50 text-slate-900">
-  <main class="mx-auto max-w-6xl p-6">
-    <h1 class="text-3xl font-bold">TriageBot</h1>
-    <p class="mt-2 text-slate-600">Tablero de incidencias con clasificación automática por IA.</p>
+  <main class="mx-auto max-w-6xl p-6 space-y-8">
 
-    <!-- TODO: formulario + filtros + tabla HTMX -->
+    <div>
+      <h1 class="text-3xl font-bold">TriageBot</h1>
+      <p class="mt-1 text-slate-500">Tablero de incidencias con clasificación automática por IA.</p>
+    </div>
+
+    <!-- 1. FORMULARIO -->
+    <section class="bg-white rounded-lg shadow-sm ring-1 ring-slate-200 p-6">
+      <h2 class="text-lg font-semibold mb-4">Crear ticket</h2>
+      <form hx-post="/tickets-form"
+            hx-target="#tickets-wrapper"
+            hx-swap="outerHTML"
+            hx-on::after-request="this.reset()"
+            class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1" for="title">Título</label>
+          <input id="title" name="title" type="text" required maxlength="200"
+                 placeholder="Ej: El login no funciona"
+                 class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1" for="description">Descripción</label>
+          <textarea id="description" name="description" required maxlength="5000" rows="3"
+                    placeholder="Describe el problema con detalle..."
+                    class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
+          Crear ticket
+        </button>
+      </form>
+    </section>
+
+    <!-- 2. FILTROS -->
+    <section class="flex gap-4 items-end flex-wrap">
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Categoría</label>
+        <select name="category"
+                hx-get="/tickets-partial"
+                hx-target="#tickets-wrapper"
+                hx-swap="outerHTML"
+                hx-include="[name='category'],[name='priority'],[name='status']"
+                class="rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Todas</option>
+          <option value="bug">Bug</option>
+          <option value="feature_request">Feature request</option>
+          <option value="question">Question</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Prioridad</label>
+        <select name="priority"
+                hx-get="/tickets-partial"
+                hx-target="#tickets-wrapper"
+                hx-swap="outerHTML"
+                hx-include="[name='category'],[name='priority'],[name='status']"
+                class="rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Todas</option>
+          <option value="P1">P1</option>
+          <option value="P2">P2</option>
+          <option value="P3">P3</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Estado</label>
+        <select name="status"
+                hx-get="/tickets-partial"
+                hx-target="#tickets-wrapper"
+                hx-swap="outerHTML"
+                hx-include="[name='category'],[name='priority'],[name='status']"
+                class="rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Todos</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In progress</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- 3. TABLERO -->
+    <div id="tickets-wrapper">
+      {% include "_tickets_table.html" %}
+    </div>
+
   </main>
 </body>
 </html>

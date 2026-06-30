@@ -1,10 +1,14 @@
 from dotenv import load_dotenv
 
-load_dotenv()  # debe ejecutarse antes que cualquier otro import de la app
+load_dotenv()
 
 from contextlib import asynccontextmanager  # noqa: E402
+from typing import Optional  # noqa: E402
 
-from fastapi import FastAPI, HTTPException  # noqa: E402
+import fastapi  # noqa: E402
+from fastapi import FastAPI, HTTPException, Request  # noqa: E402
+from fastapi.responses import HTMLResponse  # noqa: E402
+from fastapi.templating import Jinja2Templates  # noqa: E402
 
 from app import classifier, db  # noqa: E402
 from app.models import TicketCreate, TicketOut, TicketUpdate  # noqa: E402
@@ -17,11 +21,46 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="TriageBot", lifespan=lifespan)
+templates = Jinja2Templates(directory="templates")
+
+
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    tickets = db.list_tickets()
+    return templates.TemplateResponse("index.html", {"request": request, "tickets": tickets})
+
+
+@app.get("/tickets-partial", response_class=HTMLResponse)
+def tickets_partial(
+    request: Request,
+    category: Optional[str] = None,
+    priority: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    tickets = db.list_tickets(category=category or None, priority=priority or None, status=status or None)
+    return templates.TemplateResponse("_tickets_table.html", {"request": request, "tickets": tickets})
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/tickets-form", response_class=HTMLResponse)
+def create_ticket_form(request: Request, title: str = fastapi.Form(...), description: str = fastapi.Form(...)):
+    from app.models import TicketCreate
+    try:
+        TicketCreate(title=title, description=description)
+    except Exception:
+        tickets = db.list_tickets()
+        return templates.TemplateResponse("_tickets_table.html", {"request": request, "tickets": tickets})
+    try:
+        classification = classifier.classify_ticket(title, description)
+    except Exception:
+        classification = classifier.FALLBACK_CLASSIFICATION
+    db.create_ticket(title=title, description=description, **{k: classification[k] for k in ("category", "priority", "tags")})
+    tickets = db.list_tickets()
+    return templates.TemplateResponse("_tickets_table.html", {"request": request, "tickets": tickets})
 
 
 @app.post("/tickets", response_model=TicketOut, status_code=201)
