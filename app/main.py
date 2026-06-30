@@ -13,6 +13,8 @@ from fastapi.templating import Jinja2Templates  # noqa: E402
 from app import classifier, db  # noqa: E402
 from app.models import TicketCreate, TicketOut, TicketUpdate  # noqa: E402
 
+templates = Jinja2Templates(directory="templates")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -65,6 +67,13 @@ def create_ticket_form(request: Request, title: str = fastapi.Form(...), descrip
 
 @app.post("/tickets", response_model=TicketOut, status_code=201)
 def create_ticket(payload: TicketCreate):
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.post("/tickets", status_code=201)
+def create_ticket(request: Request, payload: TicketCreate):
     try:
         classification = classifier.classify_ticket(payload.title, payload.description)
     except Exception:
@@ -77,16 +86,31 @@ def create_ticket(payload: TicketCreate):
         priority=classification["priority"],
         tags=classification["tags"],
     )
-    return ticket
+
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        tickets = db.list_tickets()
+        return templates.TemplateResponse(
+            "_tickets_table.html", {"request": request, "tickets": tickets}
+        )
+    return TicketOut.model_validate(ticket)
 
 
-@app.get("/tickets", response_model=list[TicketOut])
+@app.get("/tickets")
 def list_tickets(
+    request: Request,
     category: str | None = None,
     priority: str | None = None,
     status: str | None = None,
 ):
-    return db.list_tickets(category=category, priority=priority, status=status)
+    tickets = db.list_tickets(category=category, priority=priority, status=status)
+
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return templates.TemplateResponse(
+            "_tickets_table.html", {"request": request, "tickets": tickets}
+        )
+    return tickets
 
 
 @app.patch("/tickets/{ticket_id}", response_model=TicketOut)
