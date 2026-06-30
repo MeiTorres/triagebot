@@ -79,17 +79,21 @@
       </td>
       <td class="px-3 py-2 text-sm">
         <div class="flex gap-1">
-          {% for new_status, label in next_status.get(ticket.status, []) %}
-          <button
-            hx-patch="/tickets/{{ ticket.id }}"
-            hx-vals='{"status": "{{ new_status }}"}'
-            hx-target="#tickets-container"
-            hx-swap="innerHTML"
-            hx-headers='{"Accept": "text/html"}'
-            class="rounded px-2 py-0.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700">
-            {{ label }}
-          </button>
-          {% endfor %}
+          {% if user in ticket.assignees %}
+            {% for new_status, label in next_status.get(ticket.status, []) %}
+            <button
+              hx-patch="/tickets/{{ ticket.id }}"
+              hx-vals='{"status": "{{ new_status }}"}'
+              hx-target="#tickets-container"
+              hx-swap="innerHTML"
+              hx-headers='{"Accept": "text/html"}'
+              class="rounded px-2 py-0.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700">
+              {{ label }}
+            </button>
+            {% endfor %}
+          {% else %}
+            <span class="text-slate-300 text-xs">—</span>
+          {% endif %}
         </div>
       </td>
     </tr>

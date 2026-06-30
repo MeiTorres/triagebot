@@ -142,6 +142,12 @@ def list_tickets(
 
 @app.patch("/tickets/{ticket_id}", response_model=TicketOut)
 def update_ticket(request: Request, ticket_id: int, payload: TicketUpdate):
+    user = _current_user(request)
+    existing = db.get_ticket(ticket_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    if payload.status is not None and user is not None and user not in existing["assignees"]:
+        raise HTTPException(status_code=403, detail="Solo puedes cambiar el estado de tus tickets")
     ticket = db.update_ticket(
         ticket_id,
         status=payload.status,
