@@ -96,9 +96,8 @@ Los detalles obligatorios están en:
 
 ## Equipo
 
-Nombres: Mei Torres
+Nombres: Mei Torres, Naroa Manterola
+
+Metodología: Vibe
 
 Metodología: `Vibe` 
-
-prueba 123
-1234
