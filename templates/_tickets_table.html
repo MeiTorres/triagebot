@@ -12,7 +12,14 @@
 {% set status_colors = {
   "open": "bg-green-100 text-green-700",
   "in_progress": "bg-blue-100 text-blue-700",
+  "resolved": "bg-purple-100 text-purple-700",
   "closed": "bg-slate-100 text-slate-500"
+} %}
+{% set next_status = {
+  "open": [("in_progress", "▶ En curso")],
+  "in_progress": [("resolved", "✓ Resolver"), ("open", "↩ Reabrir")],
+  "resolved": [("open", "↩ Reabrir"), ("closed", "✕ Cerrar")],
+  "closed": [("open", "↩ Reabrir")]
 } %}
 
 {% if tickets %}
@@ -25,12 +32,13 @@
       <th class="px-3 py-2 text-left text-sm font-semibold">Prioridad</th>
       <th class="px-3 py-2 text-left text-sm font-semibold">Tags</th>
       <th class="px-3 py-2 text-left text-sm font-semibold">Estado</th>
-      <th class="px-3 py-2 text-left text-sm font-semibold">Creado</th>
+      <th class="px-3 py-2 text-left text-sm font-semibold">Fecha límite</th>
+      <th class="px-3 py-2 text-left text-sm font-semibold">Acciones</th>
     </tr>
   </thead>
   <tbody class="divide-y divide-slate-100">
     {% for ticket in tickets %}
-    <tr class="hover:bg-slate-50">
+    <tr class="hover:bg-slate-50 {% if ticket.overdue %}bg-red-50{% endif %}" id="ticket-row-{{ ticket.id }}">
       <td class="px-3 py-2 text-sm text-slate-500">#{{ ticket.id }}</td>
       <td class="px-3 py-2 text-sm font-medium max-w-xs truncate">{{ ticket.title }}</td>
       <td class="px-3 py-2 text-sm">
@@ -55,7 +63,25 @@
           {{ ticket.status }}
         </span>
       </td>
-      <td class="px-3 py-2 text-xs text-slate-400">{{ ticket.created_at[:16].replace("T", " ") }}</td>
+      <td class="px-3 py-2 text-xs {% if ticket.overdue %}text-red-600 font-semibold{% else %}text-slate-500{% endif %}">
+        {{ ticket.due_date }}
+        {% if ticket.overdue %}<span class="ml-1">⚠</span>{% endif %}
+      </td>
+      <td class="px-3 py-2 text-sm">
+        <div class="flex gap-1">
+          {% for new_status, label in next_status.get(ticket.status, []) %}
+          <button
+            hx-patch="/tickets/{{ ticket.id }}"
+            hx-vals='{"status": "{{ new_status }}"}'
+            hx-target="#tickets-container"
+            hx-swap="innerHTML"
+            hx-headers='{"Accept": "text/html"}'
+            class="rounded px-2 py-0.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700">
+            {{ label }}
+          </button>
+          {% endfor %}
+        </div>
+      </td>
     </tr>
     {% endfor %}
   </tbody>

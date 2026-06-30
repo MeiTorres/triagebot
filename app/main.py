@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()  # debe ejecutarse antes que cualquier otro import de la app
 
 from contextlib import asynccontextmanager  # noqa: E402
+from datetime import UTC, datetime, timedelta  # noqa: E402
 
 from fastapi import FastAPI, HTTPException, Request  # noqa: E402
 from fastapi.responses import HTMLResponse  # noqa: E402
@@ -12,6 +13,21 @@ from app import classifier, db  # noqa: E402
 from app.models import TicketCreate, TicketOut, TicketUpdate  # noqa: E402
 
 templates = Jinja2Templates(directory="templates")
+
+_PRIORITY_DAYS = {"P1": 0, "P2": 1, "P3": 2}
+
+
+def _enrich(tickets: list[dict]) -> list[dict]:
+    now = datetime.now(UTC)
+    for t in tickets:
+        created = datetime.fromisoformat(t["created_at"])
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=UTC)
+        days = _PRIORITY_DAYS.get(t["priority"], 2)
+        due = created + timedelta(days=days)
+        t["due_date"] = due.strftime("%Y-%m-%d")
+        t["overdue"] = due < now and t["status"] not in ("resolved", "closed")
+    return tickets
 
 
 @asynccontextmanager
@@ -30,7 +46,7 @@ def health() -> dict[str, str]:
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    tickets = db.list_tickets(status="open")
+    tickets = _enrich(db.list_tickets(status="open"))
     return templates.TemplateResponse("index.html", {"request": request, "tickets": tickets})
 
 
@@ -50,7 +66,7 @@ def create_ticket(request: Request, payload: TicketCreate):
     )
 
     if "text/html" in request.headers.get("accept", ""):
-        tickets = db.list_tickets()
+        tickets = _enrich(db.list_tickets())
         return templates.TemplateResponse(
             "_tickets_table.html", {"request": request, "tickets": tickets}
         )
@@ -64,7 +80,7 @@ def list_tickets(
     priority: str | None = None,
     status: str | None = None,
 ):
-    tickets = db.list_tickets(category=category, priority=priority, status=status)
+    tickets = _enrich(db.list_tickets(category=category, priority=priority, status=status))
 
     if "text/html" in request.headers.get("accept", ""):
         return templates.TemplateResponse(
@@ -74,8 +90,14 @@ def list_tickets(
 
 
 @app.patch("/tickets/{ticket_id}", response_model=TicketOut)
-def update_ticket(ticket_id: int, payload: TicketUpdate):
+def update_ticket(request: Request, ticket_id: int, payload: TicketUpdate):
     ticket = db.update_ticket(ticket_id, status=payload.status, priority=payload.priority)
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
+
+    if "text/html" in request.headers.get("accept", ""):
+        tickets = _enrich(db.list_tickets())
+        return templates.TemplateResponse(
+            "_tickets_table.html", {"request": request, "tickets": tickets}
+        )
     return ticket
