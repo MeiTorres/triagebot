@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
 from typing import Optional
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+
+load_dotenv()
 
 from app import classifier, db
 from app.models import TicketCreate, TicketOut, TicketUpdate
