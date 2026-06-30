@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from contextlib import asynccontextmanager  # noqa: E402
-from typing import Optional  # noqa: E402
 
 import fastapi  # noqa: E402
 from fastapi import FastAPI, HTTPException, Request  # noqa: E402
@@ -29,18 +28,26 @@ templates = Jinja2Templates(directory="templates")
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     tickets = db.list_tickets()
-    return templates.TemplateResponse("index.html", {"request": request, "tickets": tickets})
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "tickets": tickets}
+    )
 
 
 @app.get("/tickets-partial", response_class=HTMLResponse)
 def tickets_partial(
     request: Request,
-    category: Optional[str] = None,
-    priority: Optional[str] = None,
-    status: Optional[str] = None,
+    category: str | None = None,
+    priority: str | None = None,
+    status: str | None = None,
 ):
-    tickets = db.list_tickets(category=category or None, priority=priority or None, status=status or None)
-    return templates.TemplateResponse("_tickets_table.html", {"request": request, "tickets": tickets})
+    tickets = db.list_tickets(
+        category=category or None,
+        priority=priority or None,
+        status=status or None,
+    )
+    return templates.TemplateResponse(
+        "_tickets_table.html", {"request": request, "tickets": tickets}
+    )
 
 
 @app.get("/health")
@@ -49,20 +56,33 @@ def health() -> dict[str, str]:
 
 
 @app.post("/tickets-form", response_class=HTMLResponse)
-def create_ticket_form(request: Request, title: str = fastapi.Form(...), description: str = fastapi.Form(...)):
-    from app.models import TicketCreate
+def create_ticket_form(
+    request: Request,
+    title: str = fastapi.Form(...),
+    description: str = fastapi.Form(...),
+):
     try:
         TicketCreate(title=title, description=description)
     except Exception:
         tickets = db.list_tickets()
-        return templates.TemplateResponse("_tickets_table.html", {"request": request, "tickets": tickets})
+        return templates.TemplateResponse(
+            "_tickets_table.html", {"request": request, "tickets": tickets}
+        )
     try:
         classification = classifier.classify_ticket(title, description)
     except Exception:
         classification = classifier.FALLBACK_CLASSIFICATION
-    db.create_ticket(title=title, description=description, **{k: classification[k] for k in ("category", "priority", "tags")})
+    db.create_ticket(
+        title=title,
+        description=description,
+        category=classification["category"],
+        priority=classification["priority"],
+        tags=classification["tags"],
+    )
     tickets = db.list_tickets()
-    return templates.TemplateResponse("_tickets_table.html", {"request": request, "tickets": tickets})
+    return templates.TemplateResponse(
+        "_tickets_table.html", {"request": request, "tickets": tickets}
+    )
 
 
 @app.post("/tickets", response_model=TicketOut, status_code=201)
@@ -115,7 +135,9 @@ def list_tickets(
 
 @app.patch("/tickets/{ticket_id}", response_model=TicketOut)
 def update_ticket(ticket_id: int, payload: TicketUpdate):
-    ticket = db.update_ticket(ticket_id, status=payload.status, priority=payload.priority)
+    ticket = db.update_ticket(
+        ticket_id, status=payload.status, priority=payload.priority
+    )
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
     return ticket
