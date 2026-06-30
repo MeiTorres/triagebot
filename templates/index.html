@@ -55,7 +55,7 @@
             hx-headers='{"Accept": "text/html"}'
             hx-target="#tickets-container"
             hx-swap="innerHTML"
-            hx-trigger="change, keyup changed delay:400ms from:[name='assignee_text']"
+            hx-trigger="change"
             class="flex flex-wrap gap-3 items-center">
         <select name="category"
                 class="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -81,22 +81,13 @@
           <option value="closed">Cerrados</option>
         </select>
 
-        <!-- Campo de texto para filtrar por responsable (se deshabilita con el checkbox) -->
-        <input id="assignee_text" name="assignee" type="text" placeholder="Filtrar por responsable"
-               class="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-        <!-- Solo mis tickets -->
-        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
-          <input type="checkbox" id="my_tickets"
-                 class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                 onchange="
-                   const txt = document.getElementById('assignee_text');
-                   if (this.checked) { txt.value = '{{ user }}'; txt.disabled = true; }
-                   else { txt.value = ''; txt.disabled = false; }
-                   htmx.trigger(txt.closest('form'), 'change');
-                 ">
-          Solo mis tickets
-        </label>
+        <select name="assignee"
+                class="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Todos los responsables</option>
+          {% for member in team %}
+          <option value="{{ member }}">{{ member }}</option>
+          {% endfor %}
+        </select>
 
         <!-- Solo vencidos -->
         <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
