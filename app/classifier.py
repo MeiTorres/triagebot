@@ -49,7 +49,9 @@ def _call_llm(client: OpenAI, title: str, description: str) -> dict:
             {"role": "assistant", "content": "{"},
         ],
     )
-    raw = "{" + response.choices[0].message.content.strip()
+    raw = response.choices[0].message.content.strip()
+    if not raw.startswith("{"):
+        raw = "{" + raw
     return _parse_and_validate(raw)
 
 
