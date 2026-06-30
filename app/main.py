@@ -49,7 +49,7 @@ def create_ticket(request: Request, payload: TicketCreate):
         tags=classification["tags"],
     )
 
-    if request.headers.get("HX-Request"):
+    if "text/html" in request.headers.get("accept", ""):
         tickets = db.list_tickets()
         return templates.TemplateResponse(
             "_tickets_table.html", {"request": request, "tickets": tickets}
@@ -66,7 +66,7 @@ def list_tickets(
 ):
     tickets = db.list_tickets(category=category, priority=priority, status=status)
 
-    if request.headers.get("HX-Request"):
+    if "text/html" in request.headers.get("accept", ""):
         return templates.TemplateResponse(
             "_tickets_table.html", {"request": request, "tickets": tickets}
         )
