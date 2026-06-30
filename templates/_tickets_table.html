@@ -15,12 +15,6 @@
   "resolved": "bg-purple-100 text-purple-700",
   "closed": "bg-slate-100 text-slate-500"
 } %}
-{% set next_status = {
-  "open": [("in_progress", "▶ En curso")],
-  "in_progress": [("resolved", "✓ Resolver"), ("open", "↩ Reabrir")],
-  "resolved": [("open", "↩ Reabrir"), ("closed", "✕ Cerrar")],
-  "closed": [("open", "↩ Reabrir")]
-} %}
 
 {% if tickets %}
 <table class="min-w-full divide-y divide-slate-200 bg-white shadow-sm ring-1 ring-slate-200 rounded-lg overflow-hidden">
@@ -78,24 +72,25 @@
         {% if ticket.overdue %}<span class="ml-1">⚠</span>{% endif %}
       </td>
       <td class="px-3 py-2 text-sm">
-        <div class="flex gap-1">
-          {% if user in ticket.assignees %}
-            {% for new_status, label in next_status.get(ticket.status, []) %}
-            <button
-              hx-patch="/tickets/{{ ticket.id }}"
-              hx-ext="json-enc"
-              hx-vals='{"status": "{{ new_status }}"}'
-              hx-target="#tickets-container"
-              hx-swap="innerHTML"
-              hx-headers='{"Accept": "text/html"}'
-              class="rounded px-2 py-0.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700">
-              {{ label }}
-            </button>
-            {% endfor %}
-          {% else %}
-            <span class="text-slate-300 text-xs">—</span>
-          {% endif %}
-        </div>
+        {% if user in ticket.assignees %}
+        <select
+          hx-patch="/tickets/{{ ticket.id }}"
+          hx-trigger="change"
+          hx-ext="json-enc"
+          hx-include="this"
+          hx-target="#tickets-container"
+          hx-swap="innerHTML"
+          hx-headers='{"Accept": "text/html"}'
+          name="status"
+          class="rounded border border-slate-300 px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="open"        {% if ticket.status == "open" %}selected{% endif %}>Abierto</option>
+          <option value="in_progress" {% if ticket.status == "in_progress" %}selected{% endif %}>En progreso</option>
+          <option value="resolved"    {% if ticket.status == "resolved" %}selected{% endif %}>Resuelto</option>
+          <option value="closed"      {% if ticket.status == "closed" %}selected{% endif %}>Cerrado</option>
+        </select>
+        {% else %}
+        <span class="text-slate-300 text-xs">—</span>
+        {% endif %}
       </td>
     </tr>
     {% endfor %}
