@@ -1,12 +1,13 @@
-from contextlib import asynccontextmanager
-
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
 
-from app import classifier, db
-from app.models import TicketCreate, TicketOut, TicketUpdate
+load_dotenv()  # debe ejecutarse antes que cualquier otro import de la app
 
-load_dotenv()  # carga .env antes del primer uso de variables de entorno
+from contextlib import asynccontextmanager  # noqa: E402
+
+from fastapi import FastAPI, HTTPException  # noqa: E402
+
+from app import classifier, db  # noqa: E402
+from app.models import TicketCreate, TicketOut, TicketUpdate  # noqa: E402
 
 
 @asynccontextmanager
