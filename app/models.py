@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, field_validator
 
@@ -32,8 +31,8 @@ class TicketCreate(BaseModel):
 
 
 class TicketUpdate(BaseModel):
-    status: Optional[str] = None
-    priority: Optional[str] = None
+    status: str | None = None
+    priority: str | None = None
 
 
 class TicketOut(BaseModel):

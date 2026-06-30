@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 
@@ -40,9 +39,9 @@ def create_ticket(payload: TicketCreate):
 
 @app.get("/tickets", response_model=list[TicketOut])
 def list_tickets(
-    category: Optional[str] = None,
-    priority: Optional[str] = None,
-    status: Optional[str] = None,
+    category: str | None = None,
+    priority: str | None = None,
+    status: str | None = None,
 ):
     return db.list_tickets(category=category, priority=priority, status=status)
 

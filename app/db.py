@@ -1,8 +1,7 @@
 import json
 import os
 import sqlite3
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 
 def _db_path() -> str:
@@ -33,12 +32,15 @@ def init_db() -> None:
     get_conn().close()
 
 
-def create_ticket(title: str, description: str, category: str, priority: str, tags: list[str]) -> dict:
-    now = datetime.now(timezone.utc).isoformat()
+def create_ticket(
+    title: str, description: str, category: str, priority: str, tags: list[str]
+) -> dict:
+    now = datetime.now(UTC).isoformat()
     with get_conn() as conn:
         cur = conn.execute(
             """
-            INSERT INTO tickets (title, description, category, priority, tags, status, created_at, updated_at)
+            INSERT INTO tickets
+                (title, description, category, priority, tags, status, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, 'open', ?, ?)
             """,
             (title, description, category, priority, json.dumps(tags), now, now),
@@ -47,13 +49,15 @@ def create_ticket(title: str, description: str, category: str, priority: str, ta
     return get_ticket(new_id)
 
 
-def get_ticket(ticket_id: int) -> Optional[dict]:
+def get_ticket(ticket_id: int) -> dict | None:
     with get_conn() as conn:
         row = conn.execute("SELECT * FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
     return _row_to_dict(row) if row else None
 
 
-def list_tickets(category: Optional[str] = None, priority: Optional[str] = None, status: Optional[str] = None) -> list[dict]:
+def list_tickets(
+    category: str | None = None, priority: str | None = None, status: str | None = None
+) -> list[dict]:
     query = "SELECT * FROM tickets WHERE 1=1"
     params: list = []
     if category:
@@ -71,7 +75,7 @@ def list_tickets(category: Optional[str] = None, priority: Optional[str] = None,
     return [_row_to_dict(r) for r in rows]
 
 
-def update_ticket(ticket_id: int, status: Optional[str], priority: Optional[str]) -> Optional[dict]:
+def update_ticket(ticket_id: int, status: str | None, priority: str | None) -> dict | None:
     fields, params = [], []
     if status is not None:
         fields.append("status = ?")
@@ -81,7 +85,7 @@ def update_ticket(ticket_id: int, status: Optional[str], priority: Optional[str]
         params.append(priority)
     if not fields:
         return get_ticket(ticket_id)
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     fields.append("updated_at = ?")
     params.extend([now, ticket_id])
     with get_conn() as conn:
