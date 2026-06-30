@@ -35,6 +35,20 @@ class TicketUpdate(BaseModel):
     priority: str | None = None
     assignees: list[str] | None = None
 
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str | None) -> str | None:
+        if v is not None and v not in ALLOWED_STATUSES:
+            raise ValueError(f"status must be one of {sorted(ALLOWED_STATUSES)}")
+        return v
+
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v: str | None) -> str | None:
+        if v is not None and v not in ALLOWED_PRIORITIES:
+            raise ValueError(f"priority must be one of {sorted(ALLOWED_PRIORITIES)}")
+        return v
+
 
 class TicketOut(BaseModel):
     id: int
