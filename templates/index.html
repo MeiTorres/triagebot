@@ -9,8 +9,15 @@
   <script src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900">
+  <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+    <span class="font-bold text-lg">TriageBot</span>
+    <div class="flex items-center gap-4 text-sm">
+      <span class="text-slate-500">Hola, <strong>{{ user }}</strong></span>
+      <a href="/logout" class="text-blue-600 hover:underline">Cerrar sesión</a>
+    </div>
+  </header>
+
   <main class="mx-auto max-w-6xl p-6 space-y-8">
-    <h1 class="text-3xl font-bold">TriageBot</h1>
     <p class="text-slate-600">Tablero de incidencias con clasificación automática por IA.</p>
 
     <!-- 1. Formulario -->
@@ -48,7 +55,7 @@
             hx-headers='{"Accept": "text/html"}'
             hx-target="#tickets-container"
             hx-swap="innerHTML"
-            hx-trigger="change, keyup changed delay:400ms from:[name='assignee']"
+            hx-trigger="change, keyup changed delay:400ms from:[name='assignee_text']"
             class="flex flex-wrap gap-3 items-center">
         <select name="category"
                 class="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -73,8 +80,30 @@
           <option value="resolved">Resueltos</option>
           <option value="closed">Cerrados</option>
         </select>
-        <input name="assignee" type="text" placeholder="Filtrar por responsable"
+
+        <!-- Campo de texto para filtrar por responsable (se deshabilita con el checkbox) -->
+        <input id="assignee_text" name="assignee" type="text" placeholder="Filtrar por responsable"
                class="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+        <!-- Solo mis tickets -->
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+          <input type="checkbox" id="my_tickets"
+                 class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                 onchange="
+                   const txt = document.getElementById('assignee_text');
+                   if (this.checked) { txt.value = '{{ user }}'; txt.disabled = true; }
+                   else { txt.value = ''; txt.disabled = false; }
+                   htmx.trigger(txt.closest('form'), 'change');
+                 ">
+          Solo mis tickets
+        </label>
+
+        <!-- Solo vencidos -->
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+          <input type="checkbox" name="overdue" value="1"
+                 class="rounded border-slate-300 text-red-600 focus:ring-red-500">
+          <span class="text-red-600 font-medium">⚠ Solo vencidos</span>
+        </label>
       </form>
     </section>
 
