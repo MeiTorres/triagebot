@@ -48,7 +48,7 @@
             hx-headers='{"Accept": "text/html"}'
             hx-target="#tickets-container"
             hx-swap="innerHTML"
-            hx-trigger="change"
+            hx-trigger="change, keyup changed delay:400ms from:[name='assignee']"
             class="flex flex-wrap gap-3 items-center">
         <select name="category"
                 class="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -73,6 +73,8 @@
           <option value="resolved">Resueltos</option>
           <option value="closed">Cerrados</option>
         </select>
+        <input name="assignee" type="text" placeholder="Filtrar por responsable"
+               class="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
       </form>
     </section>
 

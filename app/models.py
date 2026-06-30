@@ -33,6 +33,7 @@ class TicketCreate(BaseModel):
 class TicketUpdate(BaseModel):
     status: str | None = None
     priority: str | None = None
+    assignees: list[str] | None = None
 
 
 class TicketOut(BaseModel):
@@ -42,6 +43,7 @@ class TicketOut(BaseModel):
     category: str
     priority: str
     tags: list[str]
+    assignees: list[str]
     status: str
     created_at: datetime
     updated_at: datetime

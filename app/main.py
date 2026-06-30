@@ -79,8 +79,11 @@ def list_tickets(
     category: str | None = None,
     priority: str | None = None,
     status: str | None = None,
+    assignee: str | None = None,
 ):
-    tickets = _enrich(db.list_tickets(category=category, priority=priority, status=status))
+    tickets = _enrich(
+        db.list_tickets(category=category, priority=priority, status=status, assignee=assignee)
+    )
 
     if "text/html" in request.headers.get("accept", ""):
         return templates.TemplateResponse(
@@ -91,7 +94,12 @@ def list_tickets(
 
 @app.patch("/tickets/{ticket_id}", response_model=TicketOut)
 def update_ticket(request: Request, ticket_id: int, payload: TicketUpdate):
-    ticket = db.update_ticket(ticket_id, status=payload.status, priority=payload.priority)
+    ticket = db.update_ticket(
+        ticket_id,
+        status=payload.status,
+        priority=payload.priority,
+        assignees=payload.assignees,
+    )
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
 

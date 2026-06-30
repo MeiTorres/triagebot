@@ -31,6 +31,7 @@
       <th class="px-3 py-2 text-left text-sm font-semibold">Categoría</th>
       <th class="px-3 py-2 text-left text-sm font-semibold">Prioridad</th>
       <th class="px-3 py-2 text-left text-sm font-semibold">Tags</th>
+      <th class="px-3 py-2 text-left text-sm font-semibold">Responsables</th>
       <th class="px-3 py-2 text-left text-sm font-semibold">Estado</th>
       <th class="px-3 py-2 text-left text-sm font-semibold">Fecha límite</th>
       <th class="px-3 py-2 text-left text-sm font-semibold">Acciones</th>
@@ -55,6 +56,15 @@
         <div class="flex flex-wrap gap-1">
           {% for tag in ticket.tags %}
           <span class="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">{{ tag }}</span>
+          {% endfor %}
+        </div>
+      </td>
+      <td class="px-3 py-2 text-sm">
+        <div class="flex flex-wrap gap-1">
+          {% for person in ticket.assignees %}
+          <span class="rounded-full bg-indigo-100 text-indigo-700 px-2 py-0.5 text-xs font-medium">{{ person }}</span>
+          {% else %}
+          <span class="text-slate-400 text-xs">—</span>
           {% endfor %}
         </div>
       </td>
